@@ -149,23 +149,23 @@ benchmark_settings = {
 
 
 }
-A_GA=0
-sum_GA=0
-i=0
-for dataset, setting in benchmark_settings.items():
-    starttime = datetime.datetime.now()
-    parse = Ba.format_log(
-        log_format=setting['log_format'],
-        indir='../logs/')
-    form = parse.format(setting['log_file'])
-    content = form['Content']
-    # logID = form['LineId']
-    # Date = form['Date']
-    # Time = form['Time']
-    start = datetime.datetime.now()
-    sentences = content.tolist()
-    GA=Ba.parse(sentences,setting['regex'],dataset,setting['theshold'],setting['delimiter'],setting['tag'],starttime,efficiency=False)
-    print('====='+dataset+'======   :'+str(GA))
-    sum_GA+=GA
-    i+=1
-print('####         Average        ####:'+str(sum_GA/i))
+
+def main():
+    sum_GA=0
+    i=0
+    for dataset, setting in benchmark_settings.items():
+        starttime = datetime.datetime.now()
+        parse = Ba.format_log(
+            log_format=setting['log_format'],
+            indir='../logs/')
+        form = parse.format(setting['log_file'])
+        content = form['Content']
+        sentences = content.tolist()
+        GA = Ba.parse(sentences,setting['regex'],dataset,setting['theshold'],setting['delimiter'],setting['tag'],starttime,efficiency=False)
+        print('====='+dataset+'======   :'+str(GA))
+        sum_GA += GA
+        i+=1
+    print('####         Average        ####:'+str(sum_GA/i))
+
+if __name__ == '__main__':
+    main()
