@@ -13,14 +13,19 @@ TokenisedSentence = List[Token]
 TokensByColumn = Dict[ColumnIndex, TokenisedSentence]
 SentencesByLength = Dict[TokenCount, List[TokenisedSentence]]
 WordCombination = Tuple[int, Token, int]
-
+# Mapping from sentence length to a list of sentences represented by word combinations.
+CombinationsByLength = Dict[TokenCount, List[List[WordCombination]]]
+# Mapping from sentence length to a nested list, where the outer list
+# represents sentences and the inner lists represent the frequency of
+# each word in the sentence.
+FrequenciesByLength = Dict[TokenCount, List[List[int]]]
 
 def get_frequecy_vector(
     sentences: List[str],
     filter: List[str],
     delimiter: List[str],
     dataset: str,
-) -> Tuple[Any, Any, Any]:
+) -> Tuple[SentencesByLength, CombinationsByLength, FrequenciesByLength]:
     """
     根据日志生成每条日志的频次向量。
     """
@@ -112,11 +117,11 @@ def get_frequecy_vector(
                 word_frequencies[word] = 1
 
     # Mapping from sentence length to a list of sentences represented by word combinations.
-    combinations: Dict[TokenCount, List[List[WordCombination]]] = {}
+    combinations: CombinationsByLength = {}
     # Mapping from sentence length to a nested list, where the outer list
     # represents sentences and the inner lists represent the frequency of
     # each word in the sentence.
-    frequencies: Dict[TokenCount, List[List[int]]] = {}
+    frequencies: FrequenciesByLength = {}
 
     for key, tokenised_sentences in sentences_by_length.items():
         for sentence in tokenised_sentences:
@@ -135,40 +140,38 @@ def get_frequecy_vector(
     return sentences_by_length, combinations, frequencies
 
 
-def parse1(wordlist, frequency):
-    """
-    frequency为建立好的频次向量
-    """
-    index_list = []
-    wait_set = {}
-    count = 0
-    for fre in frequency:
-        number = Counter(fre)
-        result = number.most_common()
-        sorted_result = sorted(result, key=lambda tup: tup[0], reverse=True)
-        sorted_result_reverse = sorted(result, key=lambda tup: tup[0])
-        if result[0] == sorted_result[0]:
-            inde = []
-            for index, token in enumerate(fre):
-                if token == result[0][0]:
-                    inde.append(index)
-            index_list.append(inde)
-        else:
-            index_list.append("placeholder")
-            wait_set.setdefault(count, []).append(sorted_result_reverse)
-        count += 1
-    return index_list, wait_set
+# def parse1(wordlist, frequency):
+#     """
+#     frequency为建立好的频次向量
+#     """
+#     index_list = []
+#     wait_set = {}
+#     count = 0
+#     for fre in frequency:
+#         number = Counter(fre)
+#         result = number.most_common()
+#         sorted_result = sorted(result, key=lambda tup: tup[0], reverse=True)
+#         sorted_result_reverse = sorted(result, key=lambda tup: tup[0])
+#         if result[0] == sorted_result[0]:
+#             inde = []
+#             for index, token in enumerate(fre):
+#                 if token == result[0][0]:
+#                     inde.append(index)
+#             index_list.append(inde)
+#         else:
+#             index_list.append("placeholder")
+#             wait_set.setdefault(count, []).append(sorted_result_reverse)
+#         count += 1
+#     return index_list, wait_set
 
 
-def tuple_generate(wordlist, frequency, frequency_common):
+def tuple_generate(wordlist: SentencesByLength, frequency: CombinationsByLength, frequency_common: FrequenciesByLength):
     sorted_frequency = {}
     sorted_frequency_common = {}
     sorted_frequency_tuple = {}
     for key in wordlist.keys():
-        root_set = {""}
         for fre in frequency[key]:
             sorted_fre_reverse = sorted(fre, key=lambda tup: tup[0], reverse=True)
-            root_set.add(sorted_fre_reverse[0])
             sorted_frequency.setdefault(key, []).append(sorted_fre_reverse)
         for fc in frequency_common[key]:
             number = Counter(fc)
